@@ -5,68 +5,68 @@ namespace Snake
 {
     class SnakeGame
     {
-        private int mWidth;
-        private int mHeight;
-        private int mX, mY;
-        private int sleep;
-        private int speedIncrease;
-        private Queue<(int, int)> snake;
-        private (int, int) origCursor;
-        private Area[,] gameArea;
-        private bool endGame = false;
-        private Direction currentDirection;
+        private int _width;
+        private int _height;
+        private int _X, _Y;
+        private int _sleep;
+        private int _speedIncrease;
+        private Queue<(int, int)> _snake;
+        private (int, int) _origCursor;
+        private Area[,] _gameArea;
+        private bool _endGame = false;
+        private Direction _currentDirection;
 
         public SnakeGame(int width, int height)
         {
-            mWidth = width;
-            mHeight = height;
-            mX = mWidth / 2;
-            mY = height / 2;
-            sleep = 300;
-            speedIncrease = 10;
-            gameArea = new Area[width, height];
-            addFrameToGameArea(width, height);
-            snake = new Queue<(int, int)>();
-            origCursor = Console.GetCursorPosition();
-            currentDirection = Direction.North;
-            positionFood();
+            _width = width;
+            _height = height;
+            _X = _width / 2;
+            _Y = height / 2;
+            _sleep = 300;
+            _speedIncrease = 10;
+            _gameArea = new Area[width, height];
+            AddFrameToGameArea(width, height);
+            _snake = new Queue<(int, int)>();
+            _origCursor = Console.GetCursorPosition();
+            _currentDirection = Direction.North;
+            PositionFood();
 
         }
 
-        public void DrawFrame()
+        private void DrawFrame()
         {
             Console.Clear();
-            var border = "+" + new string('-', mWidth - 2) + "+";
+            var border = "+" + new string('-', _width - 2) + "+";
             Console.WriteLine(border);
-            for (int i = 0; i < mHeight - 2; i++)
+            for (int i = 0; i < _height - 2; i++)
             {
-                Console.WriteLine("|" + new string(' ', mWidth - 2) + "|");
+                Console.WriteLine("|" + new string(' ', _width - 2) + "|");
             }
             Console.WriteLine(border);
         }
 
-        private void addFrameToGameArea(int width, int height)
+        private void AddFrameToGameArea(int width, int height)
         {
             for (var i = 0; i < width; i++)
             {
-                gameArea[i, 0] = Area.Border;
-                gameArea[i, height - 1] = Area.Border;
+                _gameArea[i, 0] = Area.Border;
+                _gameArea[i, height - 1] = Area.Border;
             }
             for (var j = 1; j < height - 1; j++)
             {
-                gameArea[0, j] = Area.Border;
-                gameArea[width - 1, j] = Area.Border;
+                _gameArea[0, j] = Area.Border;
+                _gameArea[width - 1, j] = Area.Border;
             }
         }
 
-        private void positionFood()
+        private void PositionFood()
         {
             var openPositions = new List<(int, int)>();
-            for (int row = 0; row < mHeight; row++)
+            for (int row = 0; row < _height; row++)
             {
-                for (int col = 0; col < mWidth; col++)
+                for (int col = 0; col < _width; col++)
                 {
-                    if (gameArea[col, row] == Area.Open)
+                    if (_gameArea[col, row] == Area.Open)
                     {
                         openPositions.Add((col, row));
                     }
@@ -74,13 +74,13 @@ namespace Snake
             }
             var idx = new Random().Next(openPositions.Count);
             (int x, int y) = openPositions[idx];
-            gameArea[x, y] = Area.Food;
+            _gameArea[x, y] = Area.Food;
             DrawFood(x, y);
-            sleep -= speedIncrease;
+            _sleep -= _speedIncrease;
         }
-        private (int, int) getNextPos(Direction dir)
+        private (int, int) GetNextPos(Direction dir)
         {
-            if (snake.Count() < 1)
+            if (_snake.Count() < 1)
                 throw new Exception();
             var (dx, dy) = dir switch
             {
@@ -90,61 +90,61 @@ namespace Snake
                 Direction.West => (-1, 0),
                 _ => throw new ArgumentOutOfRangeException(nameof(dir), $"Unknown direction: {dir}"),
             };
-            return (mX + dx, mY + dy);
+            return (_X + dx, _Y + dy);
         }
 
-        private Area nextAreaType(int x, int y)
+        private Area NextAreaType(int x, int y)
         {
-            return gameArea[x, y];
+            return _gameArea[x, y];
         }
 
-        public void addFront(int x, int y)
+        private void AddFront(int x, int y)
         {
-            snake.Enqueue(new(x, y));
-            mX = x;
-            mY = y;
-            gameArea[x, y] = Area.Snake;
+            _snake.Enqueue(new(x, y));
+            _X = x;
+            _Y = y;
+            _gameArea[x, y] = Area.Snake;
             DrawSnake(x, y);
         }
 
-        public void removeTail()
+        private void RemoveTail()
         {
-            var (x, y) = snake.Dequeue();
-            gameArea[x, y] = Area.Open;
+            var (x, y) = _snake.Dequeue();
+            _gameArea[x, y] = Area.Open;
             DrawOpen(x, y);
         }
-        public void MoveSnake(Direction dir)
+        private void MoveSnake(Direction dir)
         {
-            var (x, y) = getNextPos(dir);
-            switch (nextAreaType(x, y))
+            var (x, y) = GetNextPos(dir);
+            switch (NextAreaType(x, y))
             {
                 case Area.Open:
-                    addFront(x, y);
-                    removeTail();
+                    AddFront(x, y);
+                    RemoveTail();
                     break;
                 case Area.Food:
-                    addFront(x, y);
-                    positionFood();
+                    AddFront(x, y);
+                    PositionFood();
                     break;
                 default:
-                    endGame = true;
+                    _endGame = true;
                     break;
             }
         }
 
-        public void StartGame()
+        private void StartGame()
         {
             Console.CursorVisible = false;
-            positionFood();
-            snake.Enqueue(new(mX, mY));
-            while (!endGame)
+            PositionFood();
+            _snake.Enqueue(new(_X, _Y));
+            while (!_endGame)
             {
                 if (Console.KeyAvailable)
                 {
                     SetDirection();
                 }
-                MoveSnake(currentDirection);
-                System.Threading.Thread.Sleep(sleep);
+                MoveSnake(_currentDirection);
+                System.Threading.Thread.Sleep(_sleep);
             }
         }
 
@@ -152,37 +152,37 @@ namespace Snake
         {
             switch (Console.ReadKey(true).Key)
             {
-                case ConsoleKey.UpArrow: currentDirection = Direction.North; break;
-                case ConsoleKey.RightArrow: currentDirection = Direction.East; break;
-                case ConsoleKey.DownArrow: currentDirection = Direction.South; break;
-                case ConsoleKey.LeftArrow: currentDirection = Direction.West; break;
-                case ConsoleKey.Escape: endGame = true; break;
+                case ConsoleKey.UpArrow: _currentDirection = Direction.North; break;
+                case ConsoleKey.RightArrow: _currentDirection = Direction.East; break;
+                case ConsoleKey.DownArrow: _currentDirection = Direction.South; break;
+                case ConsoleKey.LeftArrow: _currentDirection = Direction.West; break;
+                case ConsoleKey.Escape: _endGame = true; break;
             }
         }
-        public void DrawPoint(int x, int y, char c)
+        private void DrawPoint(int x, int y, char c)
         {
             Console.SetCursorPosition(x, y);
             Console.Write(c);
         }
 
-        public void DrawSnake(int x, int y)
+        private void DrawSnake(int x, int y)
         {
             DrawPoint(x, y, '*');
         }
 
-        public void DrawOpen(int x, int y)
+        private void DrawOpen(int x, int y)
         {
             DrawPoint(x, y, ' ');
         }
 
-        public void DrawFood(int x, int y)
+        private void DrawFood(int x, int y)
         {
             DrawPoint(x, y, '@');
         }
 
-        public void EndGame()
+        private void EndGame()
         {
-            Console.SetCursorPosition(origCursor.Item1, origCursor.Item2);
+            Console.SetCursorPosition(_origCursor.Item1, _origCursor.Item2);
             Console.WriteLine("Game Over!");
             Console.CursorVisible = true;
         }
